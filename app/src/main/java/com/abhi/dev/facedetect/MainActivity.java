@@ -16,13 +16,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
@@ -32,17 +32,14 @@ import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
     ImageView imgv;
+    Button btn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        init();
-         imgv = (ImageView) findViewById(R.id.imgview);
-    }
-
-    public void init() {
-        Button btn = (Button) findViewById(R.id.button);
+        imgv = (ImageView) findViewById(R.id.imgview);
+        btn = (Button) findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -50,31 +47,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
     }
+
+
 
     private void Detect() {
 
         Intent pickimage = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivity(pickimage);
+        startActivityForResult(pickimage , 0);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
+        switch(requestCode) {
             case 0:
-                if (resultCode == RESULT_OK) {
-                    Uri selectedImage = data.getData();
+                if(resultCode == RESULT_OK){
+                    Uri selectedImage = null;
+
+                        selectedImage = data.getData();
+
+
                     try {
                         setUpFaceDetector(selectedImage);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
                 }
+
                 break;
         }
     }
@@ -107,9 +107,9 @@ public class MainActivity extends AppCompatActivity {
         paint.setColor(Color.GREEN);
         paint.setStyle(Paint.Style.STROKE);
 
-        Bitmap bitmap2 = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(),Bitmap.Config.RGB_565);
-        Canvas tempCanvas = new Canvas(bitmap2);
-        tempCanvas.drawBitmap(bitmap2,0,0,null);
+        Bitmap bitmapval = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(),Bitmap.Config.RGB_565);
+        Canvas tempCanvas = new Canvas(bitmapval);
+        tempCanvas.drawBitmap(bitmapval,0,0,null);
 
         for(int i=0;i<faceArrays.size();i++){
             Face thisFace = faceArrays.valueAt(i);
@@ -118,11 +118,9 @@ public class MainActivity extends AppCompatActivity {
             float x2 = x1 + thisFace.getWidth();
             float y2 = y1 + thisFace.getHeight();
             tempCanvas.drawRoundRect(new RectF(x1,y1,x2,y2),2,2,paint);
-
-
         }
 
-        imgv.setImageDrawable(new BitmapDrawable(getResources(),bitmap2));
+        imgv.setImageDrawable(new BitmapDrawable(getResources(),bitmapval));
 
         if(faceArrays.size() < 1){
             new AlertDialog.Builder(this).setMessage("No face in image").show();
